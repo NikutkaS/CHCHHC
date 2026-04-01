@@ -84,6 +84,8 @@ public class TimeManager : MonoBehaviour
         player = newPlayer;
         spawnPoint = newSpawnPoint;
 
+        ResetTimerForScene();
+
         if (gameOverPanel != null)
             gameOverPanel.SetActive(gameOver);
 
@@ -122,6 +124,12 @@ public class TimeManager : MonoBehaviour
             if (rb != null) rb.linearVelocity = Vector2.zero;
         }
 
+        UpdateTimerUI();
+    }
+
+    private void ResetTimerForScene()
+    {
+        timer = loopDuration;
         UpdateTimerUI();
     }
 

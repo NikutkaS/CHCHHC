@@ -17,11 +17,15 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private MoveDirection lockedDirection = MoveDirection.None;
-
     private float upPressedAt = -1f;
     private float downPressedAt = -1f;
     private float leftPressedAt = -1f;
     private float rightPressedAt = -1f;
+
+    private Vector2 mobileInput;
+    private bool hasMobileInput;
+
+    public Vector2 CurrentMovement => movement;
 
     void Start()
     {
@@ -30,8 +34,26 @@ public class PlayerMovement : MonoBehaviour
         rb.freezeRotation = true;
     }
 
+    public void SetMobileInput(Vector2 input)
+    {
+        mobileInput = input;
+        hasMobileInput = input.sqrMagnitude > 0.001f;
+    }
+
+    public void ClearMobileInput()
+    {
+        mobileInput = Vector2.zero;
+        hasMobileInput = false;
+    }
+
     void Update()
     {
+        if (hasMobileInput)
+        {
+            movement = SnapToCardinal(mobileInput);
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             upPressedAt = Time.time;
 
@@ -53,13 +75,22 @@ public class PlayerMovement : MonoBehaviour
         movement = DirectionToVector(lockedDirection);
     }
 
+    private Vector2 SnapToCardinal(Vector2 input)
+    {
+        if (input.sqrMagnitude < 0.001f)
+            return Vector2.zero;
+
+        if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
+            return input.x > 0f ? Vector2.right : Vector2.left;
+
+        return input.y > 0f ? Vector2.up : Vector2.down;
+    }
+
     private MoveDirection ResolveDirection(bool upHeld, bool downHeld, bool leftHeld, bool rightHeld)
     {
-        // Если текущая выбранная кнопка ещё зажата — продолжаем двигаться в эту сторону.
         if (lockedDirection != MoveDirection.None && IsHeld(lockedDirection, upHeld, downHeld, leftHeld, rightHeld))
             return lockedDirection;
 
-        // Иначе выбираем самую первую из зажатых кнопок.
         MoveDirection bestDirection = MoveDirection.None;
         float bestTime = float.MaxValue;
 
